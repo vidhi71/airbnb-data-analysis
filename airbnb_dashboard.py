@@ -1,8 +1,4 @@
-# ============================================================
-#   Airbnb Data Analysis Dashboard
-#   Libraries: Pandas, Matplotlib, Seaborn
-#   Usage: Run in VS Code (each section runs independently)
-# ============================================================
+
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -12,12 +8,10 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-# ─────────────────────────────────────────
-# 0. LOAD & PREP
-# ─────────────────────────────────────────
+
 df = pd.read_csv("Cleaned_Data.csv")
 
-# Clean service fee (remove $ and commas, convert to int)
+
 df["service fee"] = (
     df["service fee"]
     .astype(str)
@@ -25,7 +19,7 @@ df["service fee"] = (
     .astype(float)
 )
 
-# Drop any rows missing key columns
+
 df.dropna(subset=["neighbourhood group", "room type", "price", "cancellation_policy"], inplace=True)
 
 print(f"✅ Dataset loaded: {df.shape[0]:,} rows × {df.shape[1]} columns")
@@ -34,9 +28,7 @@ print(f"   Room types     : {df['room type'].nunique()}")
 print(f"   Price range    : ${df['price'].min():,} – ${df['price'].max():,}")
 
 
-# ─────────────────────────────────────────
-# PALETTE & GLOBAL STYLE
-# ─────────────────────────────────────────
+
 PALETTE   = ["#FF5A5F", "#00A699", "#FC642D", "#484848", "#767676"]
 BG_COLOR  = "#FAFAFA"
 GRID_COLOR = "#E8E8E8"
@@ -56,15 +48,15 @@ plt.rcParams.update({
 })
 
 
-# ═══════════════════════════════════════════════════════════
+
 # DASHBOARD 1 — SUPPLY OVERVIEW  (2×2 grid)
-# ═══════════════════════════════════════════════════════════
+
 fig = plt.figure(figsize=(16, 11))
 fig.suptitle("Airbnb NYC — Supply Overview", fontsize=18, fontweight="bold",
              color="#484848", y=0.98)
 gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.42, wspace=0.35)
 
-# ── 1a. Listings by Neighbourhood Group (bar) ──
+# 1a. Listings by Neighbourhood Group (bar) 
 ax1 = fig.add_subplot(gs[0, 0])
 nbhd_counts = df["neighbourhood group"].value_counts()
 bars = ax1.bar(nbhd_counts.index, nbhd_counts.values, color=PALETTE, edgecolor="white", linewidth=0.8)
@@ -76,7 +68,7 @@ for bar in bars:
     ax1.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 200,
              f"{bar.get_height():,.0f}", ha="center", va="bottom", fontsize=9, color="#484848")
 
-# ── 1b. Room Type Distribution (donut) ──
+# 1b. Room Type Distribution (donut) 
 ax2 = fig.add_subplot(gs[0, 1])
 room_counts = df["room type"].value_counts()
 wedges, texts, autotexts = ax2.pie(
@@ -92,7 +84,7 @@ for at in autotexts:
     at.set_fontsize(9)
 ax2.set_title("Room Type Distribution")
 
-# ── 1c. Cancellation Policy Breakdown (horizontal bar) ──
+# 1c. Cancellation Policy Breakdown (horizontal bar) 
 ax3 = fig.add_subplot(gs[1, 0])
 cancel_counts = df["cancellation_policy"].value_counts()
 ax3.barh(cancel_counts.index, cancel_counts.values, color=PALETTE[:len(cancel_counts)],
@@ -102,7 +94,7 @@ ax3.set_xlabel("Number of Listings")
 for i, v in enumerate(cancel_counts.values):
     ax3.text(v + 100, i, f"{v:,}", va="center", fontsize=9, color="#484848")
 
-# ── 1d. Host Identity Verified (stacked bar per neighbourhood) ──
+# 1d. Host Identity Verified (stacked bar per neighbourhood) 
 ax4 = fig.add_subplot(gs[1, 1])
 identity_pivot = (
     df.groupby(["neighbourhood group", "host_identity_verified"])
@@ -121,12 +113,12 @@ ax4.legend(title="Verified", fontsize=9)
 
 plt.savefig("dashboard1_supply_overview.png", dpi=150, bbox_inches="tight")
 plt.show()
-print("✅ Dashboard 1 saved → dashboard1_supply_overview.png")
+print("Dashboard 1 saved → dashboard1_supply_overview.png")
 
 
-# ═══════════════════════════════════════════════════════════
-# DASHBOARD 2 — PRICING ANALYSIS  (2×2 grid)
-# ═══════════════════════════════════════════════════════════
+
+# DASHBOARD 2 — PRICING ANALYSIS  
+
 fig2 = plt.figure(figsize=(16, 11))
 fig2.suptitle("Airbnb NYC — Pricing Analysis", fontsize=18, fontweight="bold",
               color="#484848", y=0.98)
@@ -144,7 +136,7 @@ ax5.axvline(price_capped.median(), color="#484848", linestyle="--", linewidth=1.
             label=f"Median ${price_capped.median():.0f}")
 ax5.legend(fontsize=9)
 
-# ── 2b. Avg Price by Neighbourhood Group ──
+# 2b. Avg Price by Neighbourhood Group 
 ax6 = fig2.add_subplot(gs2[0, 1])
 avg_price = df.groupby("neighbourhood group")["price"].mean().sort_values(ascending=False)
 bars6 = ax6.bar(avg_price.index, avg_price.values, color=PALETTE, edgecolor="white")
@@ -156,7 +148,7 @@ for bar in bars6:
     ax6.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 5,
              f"${bar.get_height():.0f}", ha="center", va="bottom", fontsize=9)
 
-# ── 2c. Price by Room Type (box plot) ──
+# 2c. Price by Room Type (box plot) 
 ax7 = fig2.add_subplot(gs2[1, 0])
 order = df.groupby("room type")["price"].median().sort_values(ascending=False).index
 sns.boxplot(
@@ -170,7 +162,7 @@ ax7.set_xlabel("Room Type")
 ax7.set_ylabel("Price (USD)")
 ax7.tick_params(axis="x", rotation=15)
 
-# ── 2d. Price vs Service Fee (scatter) ──
+# 2d. Price vs Service Fee (scatter)
 ax8 = fig2.add_subplot(gs2[1, 1])
 sample = df[df["price"] < df["price"].quantile(0.95)].sample(min(3000, len(df)), random_state=42)
 scatter = ax8.scatter(
@@ -185,12 +177,12 @@ ax8.set_ylabel("Service Fee (USD)")
 
 plt.savefig("dashboard2_pricing_analysis.png", dpi=150, bbox_inches="tight")
 plt.show()
-print("✅ Dashboard 2 saved → dashboard2_pricing_analysis.png")
+print("Dashboard 2 saved → dashboard2_pricing_analysis.png")
 
 
-# ═══════════════════════════════════════════════════════════
-# DASHBOARD 3 — BOOKING BEHAVIOUR  (2×2 grid)
-# ═══════════════════════════════════════════════════════════
+
+# DASHBOARD 3 — BOOKING BEHAVIOUR  
+
 fig3 = plt.figure(figsize=(16, 11))
 fig3.suptitle("Airbnb NYC — Booking Behaviour", fontsize=18, fontweight="bold",
               color="#484848", y=0.98)
@@ -215,7 +207,7 @@ for bar in bars9:
     ax9.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 1,
              f"{bar.get_height():.1f}%", ha="center", va="bottom", fontsize=9)
 
-# ── 3b. Minimum Nights Distribution ──
+# 3b. Minimum Nights Distribution 
 ax10 = fig3.add_subplot(gs3[0, 1])
 min_nights_capped = df[df["minimum nights"] <= 30]["minimum nights"]
 sns.histplot(min_nights_capped, bins=30, color="#FC642D", alpha=0.75, ax=ax10, kde=True,
@@ -224,7 +216,7 @@ ax10.set_title("Minimum Nights Distribution (≤30)")
 ax10.set_xlabel("Minimum Nights")
 ax10.set_ylabel("Count")
 
-# ── 3c. Number of Reviews by Room Type (violin) ──
+# 3c. Number of Reviews by Room Type (violin)
 ax11 = fig3.add_subplot(gs3[1, 0])
 reviews_capped = df[df["number of reviews"] <= df["number of reviews"].quantile(0.95)]
 sns.violinplot(
@@ -236,7 +228,7 @@ ax11.set_xlabel("Room Type")
 ax11.set_ylabel("Number of Reviews")
 ax11.tick_params(axis="x", rotation=15)
 
-# ── 3d. Construction Year Trend ──
+# 3d. Construction Year Trend
 ax12 = fig3.add_subplot(gs3[1, 1])
 year_counts = (
     df["Construction year"]
@@ -256,12 +248,10 @@ ax12.tick_params(axis="x", rotation=30)
 
 plt.savefig("dashboard3_booking_behaviour.png", dpi=150, bbox_inches="tight")
 plt.show()
-print("✅ Dashboard 3 saved → dashboard3_booking_behaviour.png")
+print("Dashboard 3 saved → dashboard3_booking_behaviour.png")
 
 
-# ═══════════════════════════════════════════════════════════
-# DASHBOARD 4 — HEATMAP: Avg Price (Neighbourhood × Room Type)
-# ═══════════════════════════════════════════════════════════
+
 fig4, ax13 = plt.subplots(figsize=(12, 6))
 fig4.suptitle("Airbnb NYC — Avg Price Heatmap\n(Neighbourhood Group × Room Type)",
               fontsize=16, fontweight="bold", color="#484848")
@@ -285,9 +275,9 @@ ax13.tick_params(axis="x", rotation=20)
 plt.tight_layout()
 plt.savefig("dashboard4_price_heatmap.png", dpi=150, bbox_inches="tight")
 plt.show()
-print("✅ Dashboard 4 saved → dashboard4_price_heatmap.png")
+print("Dashboard 4 saved → dashboard4_price_heatmap.png")
 
-print("\n🎉 All dashboards generated successfully!")
+
 print("   Files saved in your working directory:")
 print("   • dashboard1_supply_overview.png")
 print("   • dashboard2_pricing_analysis.png")

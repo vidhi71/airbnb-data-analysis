@@ -22,7 +22,7 @@ df["service fee"] = (
 
 df.dropna(subset=["neighbourhood group", "room type", "price", "cancellation_policy"], inplace=True)
 
-print(f"✅ Dataset loaded: {df.shape[0]:,} rows × {df.shape[1]} columns")
+print(f"   Dataset loaded: {df.shape[0]:,} rows × {df.shape[1]} columns")
 print(f"   Neighbourhoods : {df['neighbourhood group'].nunique()}")
 print(f"   Room types     : {df['room type'].nunique()}")
 print(f"   Price range    : ${df['price'].min():,} – ${df['price'].max():,}")
